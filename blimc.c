@@ -21,7 +21,7 @@ static unsigned num_bad;
 static aiger_symbol * badsyms;
 static FILE *outfile, *msgfile, *errfile, *apitrace;
 static int verbose, xstim, plain, nowitness, noclone;
-static LGL * lgl, * clone;
+static LGL * lgl, * lclone;
 static int * coi, opt = 3;
 static int cloned;
 
@@ -69,7 +69,7 @@ static void caughtsigmsg (int sig) {
 
 static void stats (void) {
   if (verbose) {
-    if (clone) lglstats (clone);
+    if (lclone) lglstats (lclone);
     if (lgl) lglstats (lgl);
   }
   msg (1, "reached k = %d", k);
@@ -592,25 +592,25 @@ int main (int argc, char ** argv) {
       if (!noclone) lglsetopt (lgl, "clim", 1000);
       res = lglsat (lgl);
       if (!res) {
-	assert (!clone);
+	assert (!lclone);
 	assert (!noclone);
-	clone = lglclone (lgl);
+	lclone = lglclone (lgl);
 	sprintf (prefix, "c [lgl%dclone%d] ", k, cloned++);
-	lglsetprefix (clone, prefix);
-	lglfixate (clone);
-	lglmeltall (clone);
+	lglsetprefix (lclone, prefix);
+	lglfixate (lclone);
+	lglmeltall (lclone);
 #if 0
 	if (cloned & (cloned-1)) res = 0;
 	else 
 #endif
-	  res = lglsimp (clone, 1);
+	  res = lglsimp (lclone, 1);
 	if (!res) {
-	  lglsetopt (clone, "clim", -1);
-	  res = lglsat (clone);
+	  lglsetopt (lclone, "clim", -1);
+	  res = lglsat (lclone);
 	  assert (res == 10 || res == 20);
 	}
-	if (verbose >= 3) lglstats (clone);
-	tmp = clone, clone = 0;
+	if (verbose >= 3) lglstats (lclone);
+	tmp = lclone, lclone = 0;
 #ifndef NDEBUG
 	fres = 
 #endif
