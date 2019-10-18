@@ -109,7 +109,7 @@ static signed char * vals;
 static int nlits, szlits;
 static int * lits;
 
-static int verbose, bar, nowitness, plain, clone, deterministic;
+static int verbose, bar, nowitness, plain, _clone, deterministic;
 static int noreverse, addassumptions = 1, noflush, reduce, nomelt;
 
 static const char * druptraceprefix;
@@ -290,13 +290,13 @@ static int sat (Worker * w) {
   int res;
   char name[100];
   LGL * cloned;
-  if (!druptraceprefix && clone) lglsetopt (w->lgl, "clim", CLONELIMIT);
+  if (!druptraceprefix && _clone) lglsetopt (w->lgl, "clim", CLONELIMIT);
   else lglsetopt (w->lgl, "clim", -1),
        lglsetopt (w->lgl, "plim", -1),
        lglsetopt (w->lgl, "dlim", -1);
   if (!noflush) lglflushcache (w->lgl);
   res = lglsat (w->lgl);
-  assert (!druptraceprefix || !clone || res);
+  assert (!druptraceprefix || !_clone || res);
   if (!res && !justreturn (w)) {
     msg (w, 1, "cloning after %d conflicts", CLONELIMIT);
     cloned = lglclone (w->lgl);
@@ -849,7 +849,7 @@ int main (int argc, char ** argv) {
 "  -s  <stats> output statistics to separate file\n"
 "  -t  <hist> output job run time histogram to separate file\n"
 "\n"
-"  --clone       use cloning for hard cubes\n"
+"  --_clone       use cloning for hard cubes\n"
 "  --reduce      reduce learned clause cache after each job\n"
 "  --no-melt     do not melt unused assumption variables\n"
 "  --no-flush    do not flush learned clause cache before every job\n"
@@ -890,7 +890,7 @@ int main (int argc, char ** argv) {
       if (histfilename) die ("two '-t' options");
       if (++i == argc) die ("argument to '-t' missing");
       histfilename = argv[i];
-    } else if (!strcmp (argv[i], "--clone")) clone = 1;
+    } else if (!strcmp (argv[i], "--_clone")) _clone = 1;
     else if (!strcmp (argv[i], "--no-flush")) noflush = 1;
     else if (!strcmp (argv[i], "-d") || !strcmp (argv[i], "--drup")) {
       if (++i == argc) die ("argument to '%s' missing", argv[i]);
