@@ -1,5 +1,5 @@
 /*-------------------------------------------------------------------------*/
-/* Copyright 2010-2018 Armin Biere Johannes Kepler University Linz Austria */
+/* Copyright 2010-2020 Armin Biere Johannes Kepler University Linz Austria */
 /*-------------------------------------------------------------------------*/
 
 #include <stdlib.h>
