@@ -39,6 +39,7 @@
 #define MAXSTOPLKH		128
 #define FULLINT			10
 #define ASYMMETRIC		1
+#define TREELOOKDEPTH		10
 #define FULLSIMP		4
 #define FULLSEARCH		2
 #define DEFBRANCHES		50
@@ -129,11 +130,12 @@ typedef struct Lock {
 
 /*------------------------------------------------------------------------*/
 
-static int verbose, balance, showstats, nowitness, ncores, randswap, locslkhd;
-static int reducecache, nosimp, forcesimp, forcelkhd = 1, nosearch, noparallel;
-static int stoplkhd, stoplkhdint = 1, lkhdsuccessful, optimize = -1;
+static int verbose, balance, showstats, nowitness, ncores, randswap;
+static int treelookdepth, treelookdepthset, locslkhd, relevancelkhd = 1;
+static int reducecache, nosimp, forcesimp, nosearch, noparallel;
 static int fullint = FULLINT, asymmetric = ASYMMETRIC, eager = 1;
 static int splitsuccessful = 1, branches = -1, portfolio = 0;
+static int optimize = -1;
 
 static int clim, newclim, forcedclim, thisclim, initclim, maxclim, minclim;
 static int nvars, nclauses;
@@ -152,6 +154,7 @@ static int maxworkers, maxworkers2, numworkers, maxnumworkers;
 static Job ** jobs;
 static int numjobs, sizejobs;
 static struct { int64_t cnt, lkhd, split, simp, search; } js;
+static int64_t totalkhd, treelkhd;
 
 static int64_t * confstack;
 static int numconfstack, sizeconfstack;
@@ -431,12 +434,14 @@ static void decmem (size_t bytes) {
 static void * alloc (void * dummy, size_t bytes) {
   char * res;
   NEW (res, bytes);
+  (void) dummy;
   return res;
 }
 
 static void dealloc (void * dummy, void * void_ptr, size_t bytes) {
   char * char_ptr = void_ptr;
   DEL (char_ptr, bytes);
+  (void) dummy;
 }
 
 static void * resize (void * dummy, void * ptr, 
@@ -447,6 +452,7 @@ static void * resize (void * dummy, void * ptr,
   currentbytes += new_bytes;
   if (currentbytes > maxbytes) maxbytes = currentbytes;
   unlockmem ();
+  (void) dummy;
   return realloc (ptr, new_bytes);
 }
 
@@ -603,13 +609,16 @@ static void usage () {
 "  --lazy         disable eager splitting (opposite of '--eager')\n"
 "  --portfolio    use portfolio style option fuzzing (default off)\n"
 "\n"             
-" --min=<lim>     minimum conflict limit per search (compiled default %d)\n"
-" --init=<lim>    initial conflict limit per search (compiled default %d)\n"
-" --max=<lim>     maximum conflict limit per search (compiled default %d)\n"
+"  --locslkhd      use local searchf or look-ahead\n"
+"  --no-relevancelkhd do not use relevance (VSIDS/VMTF) look-ahead\n"
+"  --treelook=<d>  maximum depth for tree-based look-ahead (default %d)\n"
+"\n"             
+"  --min=<lim>    minimum conflict limit per search (compiled default %d)\n"
+"  --init=<lim>   initial conflict limit per search (compiled default %d)\n"
+"  --max=<lim>    maximum conflict limit per search (compiled default %d)\n"
 "\n"             
 "  --reduce       reduce learned clause cache for all right branches\n"
 "  --force-simp   force simplification even after light simplification\n"
-"  --force-lkhd   force full look-ahead every time\n"
 "  --no-simp      do not explicitly simplify in each round\n"
 "  --no-search    do not even search in each round\n"
 "  --no-parallel  disable additional parallel solver instance\n"
@@ -627,6 +636,7 @@ static void usage () {
   DEFBRANCHES,
   ASYMMETRIC ? "" : " (default)",
   ASYMMETRIC ? " (default)" : "",
+  TREELOOKDEPTH,
   MINCLIM,
   INITCLIM,
   MAXCLIM,
@@ -715,6 +725,7 @@ static int term (void * dummy) {
   lockdone ();
   res = done || stop;
   unlockdone ();
+  (void) dummy;
   return res;
 }
 
@@ -725,6 +736,7 @@ static void produceunit (void * voidptr, int lit) {
   parallel.units[parallel.nunits++] = lit;
   parallel.produced.units++;
   unlockparunits ();
+  (void) voidptr;
 }
 
 static void consumeunits (void * voidptr, int ** fromptr, int ** toptr) {
@@ -985,6 +997,7 @@ static void consumecls (void * voidptr, int ** cptr, int * glueptr) {
     deleaf (leaf);
     parallel.consumed.leafs++;
   } else *cptr = 0;
+  (void) voidptr;
 }
 
 static void * runparallel (void * dummy) {
@@ -1378,7 +1391,8 @@ static void simp () {
 
 void mysrand (unsigned long long seed) {
   unsigned z = seed >> 32, w = seed;
-  if (!z) z = ~z; if (!w) w = ~w;
+  if (!z) z = ~z;
+  if (!w) w = ~w;
   rng.z = z, rng.w = w;
 }
 
@@ -1401,26 +1415,34 @@ static unsigned myrandmod (unsigned mod) {
 
 /*------------------------------------------------------------------------*/
 
+#define ATOMICINC64(P) \
+do { \
+  __sync_fetch_and_add (&(P), (int64_t) 1); \
+} while (0)
+
 static void * lookaheadnode (void * voidptr) {
-  int oldvars, newvars, redpermille, oldjwhred;
+  int oldvars, newvars, redpermille;
   Node * node = voidptr;
   assert (!node->res);
   assert (node->state == LKHD);
-  oldjwhred = lglgetopt (node->lgl, "jwhred");
   oldvars = lglnvars (node->lgl);
-  if (!stoplkhd) {
-    nmsg (node, "full tree-based lookahead");
+  if (node->depth <= treelookdepth) {
+    nmsg (node, "tree-based look-ahead at depth %d", node->depth);
     lglsetopt (node->lgl, "lkhd", 2);
+    ATOMICINC64 (treelkhd);
   } else if (locslkhd) {
-    nmsg (node, "local search based lookahead");
+    nmsg (node, "local-search based look-ahead at depth %d", node->depth);
     lglsetopt (node->lgl, "lkhd", -1);
+  } else if (relevancelkhd) {
+    nmsg (node, "relevance based look-ahead at depth %d", node->depth);
+    lglsetopt (node->lgl, "lkhd", 4);
   } else {
-    nmsg (node, "no lookahead");
+    nmsg (node, "JWH based look-ahead at depth %d", node->depth);
     lglsetopt (node->lgl, "lkhd", 1);	// JWH
-    lglsetopt (node->lgl, "jwhred", 2);
+    lglsetopt (node->lgl, "jwhred", 0);	// only on original clauses
   }
+  ATOMICINC64 (totalkhd);
   node->lookahead = lglookahead (node->lgl);
-  lglsetopt (node->lgl, "jwhred", oldjwhred);
   nmsg (node, "lookahead literal %d", node->lookahead);
   newvars = lglnvars (node->lgl);
   assert (newvars <= oldvars);
@@ -1430,7 +1452,6 @@ static void * lookaheadnode (void * voidptr) {
       (1000ll * (long long) (oldvars -  newvars)) / (long long) oldvars;
   nmsg (node, "lookahead reduced %d variables to %d variables %.1f%%", 
     oldvars, newvars, redpermille / 10.0);
-  if (redpermille >= STOPLKHDRED) lkhdsuccessful = 1;
   decworkers ();
   return node;
 }
@@ -1474,7 +1495,6 @@ static void lookahead () {
   Node * node;
   LOG ("lookahead");
   startimer (&wct.lkhd);
-  lkhdsuccessful = 0;
   for (i = 0; i < numnodes; i++) {
     node = nodes[i];
     assert (node);
@@ -1508,7 +1528,7 @@ static void lookahead () {
 	splitlimbytes = sumbytes;
     } else {
       sumbytes += expected;
-      if (!stoplkhd) js.lkhd++;
+      js.lkhd++;
       schedulejob (node, lookaheadnode, "lookahead", LKHD);
     }
   }
@@ -1517,12 +1537,6 @@ static void lookahead () {
        numjobs, numnodes, round);
   runjobs ();
   joinjobs ();
-  if (stoplkhd) stoplkhd--;
-  else if (!forcelkhd && !lkhdsuccessful) {
-    assert (0 < stoplkhdint && stoplkhdint <= MAXSTOPLKH);
-    if (stoplkhdint < MAXSTOPLKH) stoplkhdint *= 2;
-    stoplkhd = stoplkhdint;
-  } else if (stoplkhdint > 1) stoplkhdint--;
   stoptimer ();
 }
 
@@ -1859,6 +1873,16 @@ static void stats () {
   msg ("%lld propagations, %.1f million propagations per second",
        (LL) propagations, avg (propagations/1e6, w));
   msg ("");
+  msg ("%lld tree-based look-ahead %.0f%% out of %d look-aheads",
+    treelkhd, pcnt (treelkhd, totalkhd), totalkhd);
+  const char * otherlkhdstr;
+  if (relevancelkhd) otherlkhdstr = "relevance";
+  else if (locslkhd) otherlkhdstr = "local-search";
+  else otherlkhdstr = "JWH";
+  msg ("%lld %s based look-ahead %.0f%% out of %d look-aheads",
+    (totalkhd - treelkhd), otherlkhdstr,
+    pcnt (totalkhd - treelkhd, totalkhd), totalkhd);
+  msg ("");
   msg ("%7d %3.0f%% lookaheads      %7.2f seconds %4.0f%%",
     js.lkhd, pcnt (js.lkhd, js.cnt), wct.lkhd, pcnt (wct.lkhd,w));
   msg ("%7d %3.0f%% splits          %7.2f seconds %4.0f%%",
@@ -2087,8 +2111,8 @@ int main (int argc, char ** argv) {
 	err ("invalid number in '%s'", argv[i]);
     } else if (!strcmp (argv[i], "--reduce")) reducecache = 1;
     else if (!strcmp (argv[i], "--locslkhd")) locslkhd = 1;
+    else if (!strcmp (argv[i], "--no-relevancelkhd")) relevancelkhd = 0;
     else if (!strcmp (argv[i], "--force-simp")) forcesimp = 1;
-    else if (!strcmp (argv[i], "--no-force-lkhd")) forcelkhd = 0;
     else if (!strcmp (argv[i], "--no-simp")) nosimp = 1;
     else if (!strcmp (argv[i], "--no-search")) nosearch = 1;
     else if (!strcmp (argv[i], "--no-parallel")) noparallel = 1;
@@ -2154,7 +2178,13 @@ int main (int argc, char ** argv) {
     } else if (!strcmp (argv[i], "-s")) {
       if (++i == argc) err ("argument to '-s' missing (try '-h')");
       seed = parseu64 (argv[i], "-s");
-    } else if (parselopt (argv[i], &minclim, "min")) ;
+    } else if (!strcmp (argv[i], "--treelook=-1"))
+      treelookdepth = -1, treelookdepthset = 1;
+    else if (!strcmp (argv[i], "--treelook=0"))
+      treelookdepth = 0, treelookdepthset = 1;
+    else if (parselopt (argv[i], &treelookdepth, "treelook"))
+      treelookdepthset = 1;
+    else if (parselopt (argv[i], &minclim, "min")) ;
     else if (parselopt (argv[i], &initclim, "init")) ;
     else if (parselopt (argv[i], &maxclim, "max")) ;
     else if (*argv[i] == '-')
@@ -2171,6 +2201,10 @@ int main (int argc, char ** argv) {
     } else if (!exists (argv[i])) err ("can not stat file '%s'", argv[i]);
     else fname = argv[i];
   }
+  if (locslkhd && relevancelkhd)
+    err ("can not combine '--relevancelkhd' and '--locslkhd'");
+  if (!treelookdepthset) treelookdepth = TREELOOKDEPTH;
+  if (treelookdepth < 0) treelookdepth = -1;
   if (maxworkers2) assert (!maxworkers), maxworkers = maxworkers2;
   if (!fname) file = stdin, fname = "<stdin>", clf = 0;
   else if (has (fname, ".gz")) file = cmd ("gunzip -c %s", fname), clf = 2;
@@ -2194,7 +2228,14 @@ int main (int argc, char ** argv) {
   else msg ("portfolio option fuzzing disabled (no '--portfolio' option)");
   if (fullint) msg ("full search/simplification round interval %d", fullint);
   else msg ("no full search/simplification");
-
+  if (treelookdepthset < 0) msg ("no tree-based look-ahead at all");
+  else msg ("tree-based look-ahead up to depth %d", treelookdepth);
+  if (relevancelkhd)
+    msg ("relevance based look-ahead starts at depth %d", treelookdepth+1);
+  else if (locslkhd)
+    msg ("local-search based look-ahead starts at depth %d", treelookdepth+1);
+  else
+    msg ("JWH based look-ahead starts at depth %d", treelookdepth+1);
   if (randswap) {
     msg ("will swap %d nodes randomly during lookahead", randswap);
     msg ("random seed %llu", (unsigned long long) seed);

@@ -54,6 +54,7 @@ LDR * ldrminit (void * state,
   res->mem.state = state;
   res->mem.alloc = alloc;
   res->mem.dealloc = dealloc;
+  (void) realloc;
   return res;
 }
 

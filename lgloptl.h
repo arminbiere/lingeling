@@ -143,7 +143,7 @@ OPT(jwhred,1,0,2,"JWH score based on redundant clauses too (2=only)");
 OPT(keepmaxglue,1,0,1,"keep maximum glue clauses");
 OPT(keepmaxglueint,1,1,I,"keep maximum glue clause interval (1 always)");
 OPT(lhbr,1,0,1, "enable lazy hyber binary reasoning");
-OPT(lkhd,2,-1,3, "-1=LOCS,0=LIS,1=JWH,2=TREELOOK,3=LENSUM");
+OPT(lkhd,2,-1,4, "-1=LOCS,0=LIS,1=JWH,2=TREELOOK,3=LENSUM,4=RELEVANCE");
 OPT(locs,0,-1,I,"use local search (-1=always otherwise how often)");
 OPT(locsbanner,0,0,1,"print version number of LOCS component");
 OPT(locsboost,2,0,100,"initial local search boost");

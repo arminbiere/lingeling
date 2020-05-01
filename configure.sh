@@ -183,10 +183,10 @@ fi
 
 [ x"$CC" = x ] && CC=gcc
 
-CFLAGS="-Wall"
+CFLAGS="-W -Wall"
 if [ $debug = yes ]
 then
-  CFLAGS="$CFLAGS -g3"
+  CFLAGS="$CFLAGS -ggdb3"
   [ $olevel = none ] || CFLAGS="$CFLAGS $olevel"
 else
   [ $olevel = none ] && olevel=-O3

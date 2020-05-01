@@ -91,6 +91,7 @@ static void catchalrm (int sig) {
 
 static int checkalarm (void * ptr) {
   assert (ptr == (void*) &caughtalarm);
+  (void) ptr;
   return caughtalarm;
 }
 
@@ -160,7 +161,7 @@ static int primes[] = {
   200000033, 200000039, 200000051, 200000069, 200000081,
 };
 
-static int nprimes = sizeof primes / sizeof *primes;
+static unsigned nprimes = sizeof primes / sizeof *primes;
 
 int main (int argc, char ** argv) {
   int res, i, j, clout, val, len, lineno, simponly, count, target;

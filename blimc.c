@@ -147,26 +147,26 @@ static int prepilit (unsigned ulit) {
 }
 
 static unsigned aiginput (unsigned idx) {
-  assert (0 <= idx && idx < model->num_inputs);
+  assert (idx < model->num_inputs);
   return model->inputs[idx].lit;
 }
 
 static int prepinput (unsigned idx) { return prepilit (aiginput (idx)); }
 
 static unsigned aiglatch (unsigned idx) {
-  assert (0 <= idx && idx < model->num_latches);
+  assert (idx < model->num_latches);
   return model->latches[idx].lit;
 }
 
 static unsigned aigreset (unsigned idx) {
-  assert (0 <= idx && idx < model->num_latches);
+  assert (idx < model->num_latches);
   return model->latches[idx].reset;
 }
 
 static int preplatch (unsigned idx) { return prepilit (aiglatch (idx)); }
 
 static unsigned aignext (unsigned idx) {
-  assert (0 <= idx && idx < model->num_latches);
+  assert (idx < model->num_latches);
   return model->latches[idx].next;
 }
 
@@ -180,17 +180,17 @@ static unsigned aigbad (unsigned idx) {
 static int prepbad (unsigned idx) { return prepilit (aigbad (idx)); }
 
 static int preplhs (unsigned idx) {
-  assert (0 <= idx && idx < model->num_ands);
+  assert (idx < model->num_ands);
   return prepilit (model->ands[idx].lhs);
 }
 
 static int prepleft (unsigned idx) {
-  assert (0 <= idx && idx < model->num_ands);
+  assert (idx < model->num_ands);
   return prepilit (model->ands[idx].rhs0);
 }
 
 static int prepright (unsigned idx) {
-  assert (0 <= idx && idx < model->num_ands);
+  assert (idx < model->num_ands);
   return prepilit (model->ands[idx].rhs1);
 }
 
@@ -362,7 +362,7 @@ static void extract (void * dummy, int lit) {
 
 static int mapuntimedlit (int lit) {
   int idx = abs (lit), res;
-  assert (1 <= idx && idx <= model->maxvar + 1);
+  assert (1 <= idx && idx <= (int) model->maxvar + 1);
   if (!(res = litmap[idx])) litmap[idx] = res = ++maxvar;
   if (lit < 0) res = -res;
   return res;
@@ -378,7 +378,7 @@ static void mapcnf (void) {
 
 static int mainilit (unsigned ulit) {
   int tmp = prepilit (ulit), idx = abs (tmp), res;
-  assert (1 <= idx && idx <= model->maxvar+1);
+  assert (1 <= idx && idx <= (int) model->maxvar+1);
   res = litmap[idx];
   if (tmp < 0) res = -res;
   return res;
@@ -629,7 +629,7 @@ int main (int argc, char ** argv) {
     if (res == 10) {
       fprintf (outfile, "1\nb0\n");
       if (!nowitness) {
-	for (i = 0; i < model->num_latches; i++) {
+	for (i = 0; i < (int) model->num_latches; i++) {
 	  if (ulitincoi (aiglatch (i))) {
 	    lit = shift (mainilit (aiglatch (i)), 0);
 	    val = lglderef (lgl, lit);

@@ -128,7 +128,7 @@ NEXT:
   if (ch == EOF) goto DONE;
   if (ch == '\r') goto NEXT;
   if (ch != '\n') {
-    if (len + 1 >= sizeof (buffer)) perr ("line buffer exceeded");
+    if (len + 1 >= (int) sizeof (buffer)) perr ("line buffer exceeded");
     buffer[len++] = ch;
     buffer[len] = 0;
     goto NEXT;

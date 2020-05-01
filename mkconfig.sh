@@ -18,8 +18,7 @@ EOF
 
 echo "#define LGL_OS \"`uname -srmn`\""
 echo "#define LGL_COMPILED \"`date`\""
-cat<<EOF
-#define LGL_RELEASED "Thu May 17 11:57:41 CEST 2018"
-#define LGL_VERSION "bcj"
-#define LGL_ID "78ebb8672540bde0a335aea946bbf32515157d5a"
-EOF
+#CUTHERE
+echo "#define LGL_RELEASED \"`date`\""
+echo "#define LGL_VERSION \"`cat VERSION`\""
+echo "#define LGL_ID \"`./getgitid`\""

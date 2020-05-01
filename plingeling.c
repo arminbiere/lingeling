@@ -225,6 +225,7 @@ static void decmem (size_t bytes) {
 static void * alloc (void * dummy, size_t bytes) {
   char * res;
   NEW (res, bytes);
+  (void) dummy;
   return res;
 }
 
@@ -232,6 +233,7 @@ static void dealloc (void * dummy, void * void_ptr, size_t bytes) {
   char * char_ptr = void_ptr;
   LOGMEM (d, void_ptr, bytes);
   DEL (char_ptr, bytes);
+  (void) dummy;
 }
 
 static void * resize (void * dummy, void * ptr, 
@@ -248,6 +250,7 @@ static void * resize (void * dummy, void * ptr,
   LOGMEM (d, ptr, old_bytes);
   res = realloc (ptr, new_bytes);
   LOGMEM (a, res, new_bytes);
+  (void) dummy;
   return res;
 }
 
@@ -943,7 +946,7 @@ static int cloneworker (int i) {
     bytes2mbll (mem.current),
     bytes2mbll (lglbytes (workers[0].lgl) + mem.current));
 
-  if (lglbytes (workers[0].lgl) + mem.current >= softmemlimit) {
+  if (lglbytes (workers[0].lgl) + mem.current >= (size_t) softmemlimit) {
     msg (-1, 0,
       "will not clone worker %d since soft memory limit %lld MB would be hit",
      i, bytes2mbll (softmemlimit));
@@ -956,6 +959,8 @@ static int cloneworker (int i) {
     bytes2mbll (mem.current), i);
   return 1;
 }
+
+static void version () { printf ("%s\n", lglversion ()); exit (0); }
 
 int main (int argc, char ** argv) {
   int i, res, clin, lit, val, id, nbcore, witness = 1, tobecloned, tobestarted;
@@ -975,6 +980,7 @@ int main (int argc, char ** argv) {
 "where <option> is one of the following:\n"
 "\n"
 "  -h         print this command line option summary\n"
+"  --version  print version and exit\n"
 "  -v         increase verbose level\n"
 #ifndef NLGLOG
 "  -l         increase logging level\n"
@@ -997,8 +1003,8 @@ int main (int argc, char ** argv) {
 "                --do-not-share-equivalences\n",
 getsystemcores (0), bytes2mbll (totalmem), bytes2gbll (totalmem));
       exit (0);
-    }
-    if (!strcmp (argv[i], "-v")) verbose++;
+    } else if (!strcmp (argv[i], "--version")) version ();
+    else if (!strcmp (argv[i], "-v")) verbose++;
 #ifndef NLGLOG
     else if (!strcmp (argv[i], "-l")) loglevel++;
 #endif

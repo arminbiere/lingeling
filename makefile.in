@@ -11,6 +11,8 @@ AIGER=@AIGER@
 
 all: targets
 
+-include makefile.bcd
+-include makefile.tune
 -include makefile.mus
 -include makefile.other
 
@@ -77,6 +79,9 @@ lglcflags.h: makefile
 	echo '#define LGL_CC "$(shell $(CC) --version|head -1)"' >> $@
 	echo '#define LGL_CFLAGS "$(CFLAGS)"' >> $@
 
+test: lingeling plingeling lglmbt
+	./lglmbt -m 100
+
 clean: clean-all clean-config
 clean-config:
 	rm -f makefile lglcfg.h lglcflags.h
@@ -86,4 +91,4 @@ clean-all:
 	rm -f *.gcno *.gcda cscope.out gmon.out *.gcov *.gch *.plist
 	rm -f *.E *.o *.s *.a log/*.log 
 
-.PHONY: all targets clean clean-config clean-all
+.PHONY: all targets test clean clean-config clean-all

@@ -231,6 +231,7 @@ static void * rest (Data * data, unsigned r) {
 static void * clause (Data * data, unsigned r) {
   lgladd (data->lgl, 0);
   data->c += 1;
+  (void) r;
   return cnf;
 }
 
@@ -395,6 +396,7 @@ static void * sat (Data * data, unsigned r) {
 
 static void * release (Data * data, unsigned r) {
   lglrelease (data->lgl);
+  (void) r;
   return 0;
 }
 
@@ -584,6 +586,7 @@ static void dd (Env * env, const char * filename, int golden, int opt) {
   prwc (env, "red");
   free (cmd);
   free (env->events);
+  (void) golden;
 }
 
 static unsigned hashmac (void) {
@@ -709,7 +712,7 @@ int main (int argc, char ** argv) {
     } else env.seed = atoi (argv[i]);
   }
   env.print = !env.quiet;
-  if (env.seed != -1 && !env.alwaysfork) {
+  if (env.seed != (unsigned) -1 && !env.alwaysfork) {
     rantrav (&env);
     printf ("\n");
   } else {
