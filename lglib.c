@@ -3063,7 +3063,7 @@ static void lgldrupligaddclsaux (LGL * lgl, int red, const int * c) {
     lgldrupligreallyadd (lgl, red);
   }
 #else
-  (void) lgl, (void) c;
+  (void) lgl, (void) red, (void) c;
 #endif
 }
 
@@ -22799,6 +22799,8 @@ DONE:
   yals_del (yals);
   lglstop (lgl);
 #endif
+  (void) lgl;
+  (void) hitlim;
   return lkhd;
 }
 
