@@ -1,14 +1,8 @@
-lglbnr.o
+*.o
+*.a
 lglcfg.h
 lglcflags.h
-lgldimacs.o
-lglib.o
-lglmain.o
 lglmbt
-lglmbt.o
-lglopts.o
-liblgl.a
 lingeling
 makefile
 plingeling
-plingeling.o
