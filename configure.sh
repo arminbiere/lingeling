@@ -183,15 +183,20 @@ fi
 
 [ x"$CC" = x ] && CC=gcc
 
-CFLAGS="-W -Wall"
+CFLAGS="$CFLAGS -W -Wall"
 if [ $debug = yes ]
 then
   CFLAGS="$CFLAGS -ggdb3"
   [ $olevel = none ] || CFLAGS="$CFLAGS $olevel"
 else
-  [ $olevel = none ] && olevel=-O3
-  CFLAGS="$CFLAGS $olevel"
-  [ $lto = yes ] && CFLAGS="$CFLAGS -flto -fwhole-program"
+  case "$CFLAGS" in
+    *-O*) ;;
+    *)
+      [ $olevel = none ] && olevel=-O3
+      CFLAGS="$CFLAGS $olevel"
+      ;;
+  esac
+  [ $lto = yes ] && { CFLAGS="$CFLAGS -flto -fwhole-program"; LDFLAGS="$LDFLAGS -flto -fwhole-program"; }
 fi
 
 LIBS="-lm"
@@ -232,10 +237,10 @@ then
 fi
 
 [ $chksol = undefined ] && chksol=$check
-[ $static = yes ] && CFLAGS="$CFLAGS -static"
-[ $profile = yes ] && CFLAGS="$CFLAGS -pg"
+[ $static = yes ] && LDFLAGS="$LDFLAGS -static"
+[ $profile = yes ] && { CFLAGS="$CFLAGS -pg"; LDFLAGS="$LDFLAGS -pg"; }
 [ $coverage = yes ] && CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
-[ $other = none ] || CFLAGS="$CFLAGS $other"
+[ $other = none ] || { CFLAGS="$CFLAGS $other"; LDFLAGS="$LDFLAGS $other"; }
 [ $log = no ] && CFLAGS="$CFLAGS -DNLGLOG"
 [ $check = no ] && CFLAGS="$CFLAGS -DNDEBUG"
 [ $chksol = no ] && CFLAGS="$CFLAGS -DNCHKSOL"
@@ -270,12 +275,13 @@ echo "$CC $CFLAGS"
 
 rm -f makefile
 sed \
-  -e "s,@CC@,$CC," \
-  -e "s,@CFLAGS@,$CFLAGS," \
-  -e "s,@HDEPS@,$HDEPS," \
-  -e "s,@LDEPS@,$LDEPS," \
-  -e "s,@EXTRAOBJS@,$EXTRAOBJS," \
-  -e "s,@AIGERTARGETS@,$AIGERTARGETS," \
-  -e "s,@AIGER@,$AIGER," \
-  -e "s,@LIBS@,$LIBS," \
+  -e "s#@CC@#$CC#" \
+  -e "s#@CFLAGS@#$CFLAGS#" \
+  -e "s#@LDFLAGS@#$LDFLAGS#" \
+  -e "s#@HDEPS@#$HDEPS#" \
+  -e "s#@LDEPS@#$LDEPS#" \
+  -e "s#@EXTRAOBJS@#$EXTRAOBJS#" \
+  -e "s#@AIGERTARGETS@#$AIGERTARGETS#" \
+  -e "s#@AIGER@#$AIGER#" \
+  -e "s#@LIBS@#$LIBS#" \
   makefile.in > makefile

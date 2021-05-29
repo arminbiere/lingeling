@@ -2,6 +2,7 @@ MAKEFLAGS=-j $(if $(CORES),$(CORES),1)
 
 CC=@CC@
 CFLAGS=@CFLAGS@
+LDFLAGS=@LDFLAGS@
 
 LIBS=@LIBS@
 LDEPS=@LDEPS@
@@ -29,21 +30,21 @@ liblgl.a: lglib.o lglbnr.o lgldimacs.o lglopts.o makefile $(EXTRAOBJS)
 	ranlib $@
 
 lingeling: lglmain.o liblgl.a makefile $(LDEPS)
-	$(CC) $(CFLAGS) -o $@ lglmain.o -L. -llgl $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ lglmain.o -L. -llgl $(LIBS)
 plingeling: plingeling.o liblgl.a makefile $(LDEPS)
-	$(CC) $(CFLAGS) -pthread -o $@ plingeling.o -L. -llgl $(LIBS)
+	$(CC) $(LDFLAGS) -pthread -o $@ plingeling.o -L. -llgl $(LIBS)
 treengeling: treengeling.o liblgl.a makefile $(LDEPS)
-	$(CC) $(CFLAGS) -pthread -o $@ treengeling.o -L. -llgl $(LIBS)
+	$(CC) $(LDFLAGS) -pthread -o $@ treengeling.o -L. -llgl $(LIBS)
 blimc: blimc.o liblgl.a makefile $(AIGER)/aiger.o $(LDEPS)
-	$(CC) $(CFLAGS) -o $@ blimc.o -L. $(AIGER)/aiger.o -llgl $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ blimc.o -L. $(AIGER)/aiger.o -llgl $(LIBS)
 ilingeling: ilingeling.o liblgl.a makefile $(LDEPS)
-	$(CC) $(CFLAGS) -pthread -o $@ ilingeling.o -L. -llgl $(LIBS)
+	$(CC) $(LDFLAGS) -pthread -o $@ ilingeling.o -L. -llgl $(LIBS)
 lglmbt: lglmbt.o liblgl.a $(LDEPS)
-	$(CC) $(CFLAGS) -o $@ lglmbt.o -L. -llgl $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ lglmbt.o -L. -llgl $(LIBS)
 lgluntrace: lgluntrace.o liblgl.a makefile $(LDEPS)
-	$(CC) $(CFLAGS) -o $@ lgluntrace.o -L. -llgl $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ lgluntrace.o -L. -llgl $(LIBS)
 lglddtrace: lglddtrace.o liblgl.a makefile $(LDEPS)
-	$(CC) $(CFLAGS) -o $@ lglddtrace.o -L. -llgl $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ lglddtrace.o -L. -llgl $(LIBS)
 
 lglmain.o: lglmain.c lglib.h makefile
 	$(CC) $(CFLAGS) -c lglmain.c
