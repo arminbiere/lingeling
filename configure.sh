@@ -191,7 +191,7 @@ then
 else
   [ $olevel = none ] && olevel=-O3
   CFLAGS="$CFLAGS $olevel"
-  [ $lto = yes ] && CFLAGS="$CFLAGS -flto -fwhole-program"
+  [ $lto = yes ] && { CFLAGS="$CFLAGS -flto -fwhole-program"; LDFLAGS="$LDFLAGS -flto -fwhole-program"; }
 fi
 
 LIBS="-lm"
@@ -232,10 +232,10 @@ then
 fi
 
 [ $chksol = undefined ] && chksol=$check
-[ $static = yes ] && CFLAGS="$CFLAGS -static"
-[ $profile = yes ] && CFLAGS="$CFLAGS -pg"
+[ $static = yes ] && LDFLAGS="$LDFLAGS -static"
+[ $profile = yes ] && { CFLAGS="$CFLAGS -pg"; LDFLAGS="$LDFLAGS -pg"; }
 [ $coverage = yes ] && CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
-[ $other = none ] || CFLAGS="$CFLAGS $other"
+[ $other = none ] || { CFLAGS="$CFLAGS $other"; LDFLAGS="$LDFLAGS $other"; }
 [ $log = no ] && CFLAGS="$CFLAGS -DNLGLOG"
 [ $check = no ] && CFLAGS="$CFLAGS -DNDEBUG"
 [ $chksol = no ] && CFLAGS="$CFLAGS -DNCHKSOL"
@@ -272,6 +272,7 @@ rm -f makefile
 sed \
   -e "s,@CC@,$CC," \
   -e "s,@CFLAGS@,$CFLAGS," \
+  -e "s,@LDFLAGS@,$LDFLAGS," \
   -e "s,@HDEPS@,$HDEPS," \
   -e "s,@LDEPS@,$LDEPS," \
   -e "s,@EXTRAOBJS@,$EXTRAOBJS," \
