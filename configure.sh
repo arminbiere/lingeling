@@ -275,13 +275,13 @@ echo "$CC $CFLAGS"
 
 rm -f makefile
 sed \
-  -e "s,@CC@,$CC," \
-  -e "s,@CFLAGS@,$CFLAGS," \
-  -e "s,@LDFLAGS@,$LDFLAGS," \
-  -e "s,@HDEPS@,$HDEPS," \
-  -e "s,@LDEPS@,$LDEPS," \
-  -e "s,@EXTRAOBJS@,$EXTRAOBJS," \
-  -e "s,@AIGERTARGETS@,$AIGERTARGETS," \
-  -e "s,@AIGER@,$AIGER," \
-  -e "s,@LIBS@,$LIBS," \
+  -e "s#@CC@#$CC#" \
+  -e "s#@CFLAGS@#$CFLAGS#" \
+  -e "s#@LDFLAGS@#$LDFLAGS#" \
+  -e "s#@HDEPS@#$HDEPS#" \
+  -e "s#@LDEPS@#$LDEPS#" \
+  -e "s#@EXTRAOBJS@#$EXTRAOBJS#" \
+  -e "s#@AIGERTARGETS@#$AIGERTARGETS#" \
+  -e "s#@AIGER@#$AIGER#" \
+  -e "s#@LIBS@#$LIBS#" \
   makefile.in > makefile
