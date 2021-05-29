@@ -183,14 +183,19 @@ fi
 
 [ x"$CC" = x ] && CC=gcc
 
-CFLAGS="-W -Wall"
+CFLAGS="$CFLAGS -W -Wall"
 if [ $debug = yes ]
 then
   CFLAGS="$CFLAGS -ggdb3"
   [ $olevel = none ] || CFLAGS="$CFLAGS $olevel"
 else
-  [ $olevel = none ] && olevel=-O3
-  CFLAGS="$CFLAGS $olevel"
+  case "$CFLAGS" in
+    *-O*) ;;
+    *)
+      [ $olevel = none ] && olevel=-O3
+      CFLAGS="$CFLAGS $olevel"
+      ;;
+  esac
   [ $lto = yes ] && { CFLAGS="$CFLAGS -flto -fwhole-program"; LDFLAGS="$LDFLAGS -flto -fwhole-program"; }
 fi
 
