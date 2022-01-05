@@ -1,5 +1,6 @@
 /*-------------------------------------------------------------------------*/
-/* Copyright 2010-2020 Armin Biere Johannes Kepler University Linz Austria */
+/* Copyright 2010-2021 Armin Biere Johannes Kepler University Linz         */
+/* Copyright 2021-2022 Armin Biere Albert-Ludwigs University Freiburg      */
 /*-------------------------------------------------------------------------*/
 
 #include "lglib.h"
@@ -2140,6 +2141,8 @@ LGL * lglclone (LGL * lgl) {
 
 void lglchkclone (LGL * lgl) {
   REQINITNOTFORKED ();
+  if (lgl->clone) lglrelease (lgl->clone);
+  lgl->clone = lglclone (lgl);
   TRAPI ("chkclone");
 }
 
@@ -3063,7 +3066,7 @@ static void lgldrupligaddclsaux (LGL * lgl, int red, const int * c) {
     lgldrupligreallyadd (lgl, red);
   }
 #else
-  (void) lgl, (void) c;
+  (void) lgl, (void) red, (void) c;
 #endif
 }
 
@@ -22798,6 +22801,8 @@ DONE:
   if (lgl->opts->verbose.val >= 1) yals_stats (yals);
   yals_del (yals);
   lglstop (lgl);
+#else
+  (void) lgl, (void) hitlim;
 #endif
   return lkhd;
 }

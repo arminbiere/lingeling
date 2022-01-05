@@ -730,7 +730,7 @@ int main (int argc, char ** argv) {
 	env.seed *= 31752023;
 	env.seed += prev;
 	env.seed *= 43376579;
-	prev = env.seed = env.seed >> 1;
+	prev = env.seed = (env.seed >> 1);
       }
       if (!env.quiet) {
 	if (env.terminal) erase ();
