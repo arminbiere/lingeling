@@ -123,7 +123,7 @@ version=`cat VERSION`
 
 description=$dir/starexec_description.txt
 cat <<EOF>$description
-Legacy SAT Solver with powerful Pre- and Inprocessing
+Legacy SAT Solver with powerful Preprocessing and Inprocessing
 EOF
 msg "included the following description:"
 printf $BOLD
