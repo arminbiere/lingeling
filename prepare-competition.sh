@@ -35,7 +35,7 @@ wrn () {
   echo "${BOLD}$script: ${YELLOW}warning:${NORMAL} $*" 1>&2
 }
 
-cd `dirname $0`/..
+cd `dirname $0`
 root=`pwd`
 
 tmp=/tmp/`basename $script .sh`
