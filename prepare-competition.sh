@@ -105,7 +105,7 @@ cat <<EOF > $build
 tar xf ../archive/lingeling*
 mv lingeling* lingeling
 cd lingeling
-./configure
+./configure.sh
 make all || exit 1
 exec install -s build/lingeling ../../bin/
 EOF
