@@ -1,0 +1,15 @@
+targets: sblitter mequick
+
+sblitter: sblitter.o liblgl.a makefile $(LDEPS)
+	$(CC) $(CFLAGS) -o $@ sblitter.o -L. -llgl $(LIBS)
+mequick: mequick.o liblgl.a makefile $(LDEPS)
+	$(CC) $(CFLAGS) -o $@ mequick.o -L. -llgl $(LIBS)
+
+sblitter.o: sblitter.c lglib.h makefile
+	$(CC) $(CFLAGS) -c sblitter.c
+mequick.o: mequick.c lglib.h makefile
+	$(CC) $(CFLAGS) -c mequick.c
+
+clean: clean-bcd
+clean-bcd:
+	rm -f sblitter mequick
