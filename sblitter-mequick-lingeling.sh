@@ -6,7 +6,9 @@ blocked=$prefix-blocked.cnf
 rest=$prefix-rest.cnf
 simplified=$prefix-simplified
 trap "rm -f $prefix*" 2 11
-sblitter -v -t $SBLITTERLIM $1 $blocked $rest
+original=$1
+shift
+sblitter -v -t $SBLITTERLIM $original $blocked $rest
 mequick -v -t $MEQUICKLIM $blocked $simplified -c $rest -a
-lingeling -v $simplified 
+lingeling -v $simplified $*
 rm -f $prefix*
