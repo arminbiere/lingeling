@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------*/
 /* Copyright 2010-2021 Armin Biere Johannes Kepler University Linz         */
-/* Copyright 2021-2022 Armin Biere Albert-Ludwigs University Freiburg      */
+/* Copyright 2021-2024 Armin Biere Albert-Ludwigs University Freiburg      */
 /*-------------------------------------------------------------------------*/
 
 #include "lglib.h"

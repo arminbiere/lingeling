@@ -1,5 +1,6 @@
 /*-------------------------------------------------------------------------*/
 /* Copyright 2013-2020 Armin Biere Johannes Kepler University Linz Austria */
+/* Copyright 2024 Armin Biere University of Freiburg Germany               */
 /*-------------------------------------------------------------------------*/
 
 #include "lglib.h"
@@ -1270,8 +1271,8 @@ int main (int argc, char ** argv) {
 	"  <blocked>      blocked clauses (default <stdout>)\n"
 	"  <remaining>    remaining clauses\n"
 	"\n"
-	"If <input> has a '.gz' or '.bz2' suffix it is tried to be\n"
-	"decompressed during parsing using 'gunzip -c' or 'bzcat'.\n",
+	"If <input> has a '.gz', '.xz' or '.bz2' suffix it is tried to be\n"
+	"decompressed during parsing using 'gzip', 'xz' or 'bzip2'.\n",
 	OPTDEF, OPTDEF);
       exit (0);
     }

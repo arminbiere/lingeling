@@ -138,6 +138,8 @@ void ldrsetpath (LDR * ldr, const char * path) {
   ldr->closefile = 2;
   if (ldrhas (path, ".gz"))
     ldr->file = ldrcmd  (ldr, "gunzip -c %s", path);
+  else if (ldrhas (path, ".xz"))
+    ldr->file = ldrcmd (ldr, "xz -d -c %s", path);
   else if (ldrhas (path, ".bz2"))
     ldr->file = ldrcmd (ldr, "bzcat %s", path);
   else if (ldrhas (path, ".7z"))
