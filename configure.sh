@@ -80,7 +80,7 @@ do
     --no-aiger) aiger=no;;
     --yalsat=*) yalsat=`echo "$1"|sed -e 's,^--yalsat=,,'`;;
     --no-yalsat) yalsat=no;;
-    --druplig) druplig=`echo "$1"|sed -e 's,^--druplig=,,'`;;
+    --druplig=*) druplig=`echo "$1"|sed -e 's,^--druplig=,,'`;;
     --no-druplig) druplig=no;;
     --files) files=yes;;
     --classify) classify=yes;;
