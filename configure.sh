@@ -235,7 +235,7 @@ fi
 [ $static = yes ] && CFLAGS="$CFLAGS -static"
 [ $profile = yes ] && CFLAGS="$CFLAGS -pg"
 [ $coverage = yes ] && CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
-[ $other = none ] || CFLAGS="$CFLAGS $other"
+[ "${other}" = none ] || CFLAGS="$CFLAGS ${other}"
 [ $log = no ] && CFLAGS="$CFLAGS -DNLGLOG"
 [ $check = no ] && CFLAGS="$CFLAGS -DNDEBUG"
 [ $chksol = no ] && CFLAGS="$CFLAGS -DNCHKSOL"
