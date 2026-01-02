@@ -292,6 +292,16 @@ UNLOCK (simplified)
 UNLOCK (stats)
 UNLOCK (workers)
 
+static void lockmsg_callback (void * voidptr) {
+  lockmsg();
+  (void) voidptr;
+}
+
+static void unlockmsg_callback (void * voidptr) {
+  unlockmsg();
+  (void) voidptr;
+}
+
 /*------------------------------------------------------------------------*/
 
 static void err (const char * fmt, ...) {
@@ -818,7 +828,7 @@ static void initroot () {
     lglsetopt (root, "bca", 0);
     lglseterm (root, term, 0);
     lglsetconsumeunits (root, consumeunits, &rootconsumed);
-    lglsetmsglock (root, lockmsg, unlockmsg, 0);
+    lglsetmsglock (root, lockmsg_callback, unlockmsg_callback, 0);
   }
   lglsetime (root, getime);
   lglsetprefix (root, "c (root) ");
@@ -857,7 +867,7 @@ static Node * newnode (Node * parent, int decision) {
   sprintf (prefix, "c (%d %lld) ", res->depth, (LL) res->id);
   lglsetprefix (res->lgl, prefix);
   lglseterm (res->lgl, term, 0);
-  lglsetmsglock (res->lgl, lockmsg, unlockmsg, 0);
+  lglsetmsglock (res->lgl, lockmsg_callback, unlockmsg_callback, 0);
   if (!noparallel) lglsetconsumeunits (res->lgl, consumeunits, &res->consumed);
   cubemsg (res, "opened cube");
   added++;
@@ -1040,7 +1050,7 @@ static void startparallel (LGL * lgl) {
   lglseterm (parallel.lgl, term, 0);
   lglsetproduceunit (parallel.lgl, produceunit, 0);
   lglsetconsumecls (parallel.lgl, consumecls, 0);
-  lglsetmsglock (parallel.lgl, lockmsg, unlockmsg, 0);
+  lglsetmsglock (parallel.lgl, lockmsg_callback, unlockmsg_callback, 0);
   parallel.decisions = lglgetdecs (parallel.lgl);
   parallel.conflicts = lglgetconfs (parallel.lgl);
   parallel.propagations = lglgetprops (parallel.lgl);
